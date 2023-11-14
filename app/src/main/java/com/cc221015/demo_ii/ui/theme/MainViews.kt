@@ -1,5 +1,6 @@
 package com.cc221015.demo_ii.ui.theme
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.ui.unit.dp
@@ -25,6 +26,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.BottomNavigation
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ExposedDropdownMenuBox
+import androidx.compose.material.ExposedDropdownMenuDefaults
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Surface
@@ -35,16 +40,21 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -54,6 +64,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -62,11 +73,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
 import com.cc221015.demo_ii.R
 import com.cc221015.demo_ii.data.PokemonTrainer
 import com.cc221015.demo_ii.domain.Pokemon
@@ -99,8 +113,12 @@ fun MainView(mainViewModel: MainViewModel, pokemonViewModel: PokemonViewModel){
         ){
             composable(Screen.Zero.route){
                 SetBackgroundMain()
-                mainViewModel.selectScreen(Screen.Zero)
-                landingPage(navController = navController)
+                if(state.value.pokemonTrainers.count() > -1) {
+                    mainViewModel.selectScreen(Screen.Zero)
+                } else {
+                    navController.navigate(Screen.First.route)
+                }
+                landingPage()
             }
             composable(Screen.First.route){
                 SetBackgroundMain()
@@ -109,8 +127,6 @@ fun MainView(mainViewModel: MainViewModel, pokemonViewModel: PokemonViewModel){
             }
             composable(Screen.Second.route){
                 SetBackgroundMain()
-                //mainViewModel.selectScreen(Screen.Second)
-                //mainViewModel.getPokemonTrainer()
                 mainViewModel.selectScreen(Screen.Second)
                 pokemonViewModel.getFavPokemon()
                 MyPokemonList(pokemonViewModel, true)
@@ -123,6 +139,8 @@ fun MainView(mainViewModel: MainViewModel, pokemonViewModel: PokemonViewModel){
             }
             composable(Screen.Fourth.route){
                 SetBackgroundMain()
+                mainViewModel.selectScreen(Screen.Fourth)
+                mainViewModel.getPokemonTrainer()
             }
         }
     }
@@ -141,38 +159,115 @@ fun BottomNavigationBar(navController: NavHostController, selectedScreen: Screen
         NavigationBarItem(
             selected = (selectedScreen == Screen.Second),
             onClick = { navController.navigate(Screen.Second.route) },
-            icon = { Icon(imageVector = Icons.Default.AccountBox, contentDescription = "") })
+            icon = { Icon(imageVector = Icons.Default.Favorite, contentDescription = "") })
 
         NavigationBarItem(
             selected = (selectedScreen == Screen.Third),
             onClick = { navController.navigate(Screen.Third.route) },
+            icon = { Icon(imageVector = Icons.Default.List, contentDescription = "") })
+
+        NavigationBarItem(
+            selected = (selectedScreen == Screen.Fourth),
+            onClick = { navController.navigate(Screen.Fourth.route) },
             icon = { Icon(imageVector = Icons.Default.AccountCircle, contentDescription = "") })
     }
 }
 
+@SuppressLint("DiscouragedApi")
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun landingPage(navController: NavHostController){
+fun landingPage() {
+    var isExpanded by remember { mutableStateOf(false) }
+    var selectedTrainerIndex by remember { mutableStateOf("") }
+    var trainerName by remember { mutableStateOf("") }
+    val trainerImageResources = listOf(
+        "trainer1",
+        "trainer2",
+        "trainer3",
+        "trainer4",
+        "trainer5",
+        "trainer6",
+        "trainer7",
+        "trainer8",
+        "trainer9",
+        "trainer10",
+        "trainer11"
+    )
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Button(
-            onClick = { navController.navigate(Screen.First.route) },
-            modifier = Modifier.padding(top = 20.dp)
-        ) {
-            Text(text = stringResource(R.string.login_button), fontSize = 20.sp)
-        }
-        Spacer(
-            modifier = Modifier.height(20.dp)
+        val painter = rememberAsyncImagePainter(model = selectedTrainerIndex)
+        Image(
+            painter = painter,
+            contentDescription = "Pokemon Image",
+            contentScale = ContentScale.FillHeight,
+            modifier = Modifier
+                .size(120.dp)
+                .clip(MaterialTheme.shapes.medium)
+                .padding(10.dp)
         )
+
+        ExposedDropdownMenuBox(
+            expanded = isExpanded,
+            onExpandedChange = { isExpanded = it }
+        ) {
+            TextField(
+                value = trainerName,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
+                },
+            )
+
+            ExposedDropdownMenu(
+                expanded = isExpanded,
+                onDismissRequest = { isExpanded = false }
+            ) {
+                for (i in trainerImageResources) {
+                    var currentTrainerName = i
+                    val resourceId = LocalContext.current.resources.getIdentifier(
+                        i,
+                        "drawable",
+                        LocalContext.current.packageName
+                    )
+                    val imageUrl = "android.resource://${LocalContext.current.packageName}/$resourceId"
+                    DropdownMenuItem(text = { TextBox(text = currentTrainerName)}, onClick = { selectedTrainerIndex = imageUrl; trainerName = currentTrainerName })
+                }
+            }
+        }
+
+        var name by remember { mutableStateOf("") }
+        TextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Name") },
+            modifier = Modifier.padding(top = 20.dp)
+        )
+
+        var gender by remember { mutableStateOf("") }
+        TextField(
+            value = gender,
+            onValueChange = { gender = it },
+            label = { Text("Gender") },
+            modifier = Modifier.padding(top = 20.dp)
+        )
+
         Button(
-            onClick = { navController.navigate(Screen.Fourth.route) },
+            onClick = { /* Perform action to create a new trainer */ },
             modifier = Modifier.padding(top = 20.dp)
         ) {
-            Text(text = stringResource(R.string.createUser_Button), fontSize = 20.sp)
+            Text(text = "Create New Trainer", fontSize = 20.sp)
         }
     }
+}
+
+@Composable
+fun TextBox(text:String){
+    Text(text = text)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
