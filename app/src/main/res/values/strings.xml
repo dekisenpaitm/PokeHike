@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Nav</string>
+    <string name="login_button">Login</string>
+    <string name="createUser_Button">Register</string>
+    <string name="mainscreen_title">Pokedex</string>
+    <string name="mainscreen_field_name">Pokemon</string>
+    <string name="mainscreen_field_uid">Type</string>
+    <string name="mainscreen_button_save">Add Pokemon</string>
+    <string name="editmodal_field_name">Pokemon</string>
+    <string name="editmodal_field_uid">Type</string>
+    <string name="editmodal_button_save">Confirm</string>
+    <string name="decorative_android_icon">Decorative Android Icon</string>
+    <string name="displayPokemon_title">Your Fav Pokemon:</string>
+</resources>
