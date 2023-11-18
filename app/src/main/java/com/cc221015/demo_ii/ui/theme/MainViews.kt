@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowColumn
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,15 +27,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.BottomNavigation
-import androidx.compose.material.DropdownMenu
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.ExposedDropdownMenuDefaults
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -45,14 +45,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -71,22 +69,19 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
 import com.cc221015.demo_ii.R
 import com.cc221015.demo_ii.data.PokemonTrainer
 import com.cc221015.demo_ii.domain.Pokemon
-import com.cc221015.demo_ii.domain.PokemonType
 import com.cc221015.demo_ii.viewModel.MainViewModel
 import com.cc221015.demo_ii.viewModel.PokemonViewModel
+import java.lang.reflect.Field
 import java.util.Locale
 
 
@@ -141,6 +136,7 @@ fun MainView(mainViewModel: MainViewModel, pokemonViewModel: PokemonViewModel){
                 SetBackgroundMain()
                 mainViewModel.selectScreen(Screen.Fourth)
                 mainViewModel.getPokemonTrainer()
+                DisplayTrainerProfile(mainViewModel)
             }
         }
     }
@@ -343,6 +339,128 @@ fun SetBackgroundMain() {
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
+    }
+}
+
+@Composable
+fun TrainerValues(mainViewModel: MainViewModel) {
+    val pokemonTrainer = PokemonTrainer::class.java.declaredFields
+    val sortedAttributes = pokemonTrainer.sortedBy { it.name.length}
+    LazyColumn(
+        verticalArrangement = Arrangement.Bottom,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        items(sortedAttributes){ pokemonTrainer ->
+            pokemonTrainer.isAccessible
+            if(!pokemonTrainer.name.contains("stable", false) && !pokemonTrainer.name.contains("sprite", false)) {
+                    TrainerItem(pokemonTrainer.name, mainViewModel)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun TrainerItem(trainerValue: String, mainViewModel: MainViewModel){
+    val state = mainViewModel.mainViewState.collectAsState()
+    val trainerProperty = PokemonTrainer::class.java.getDeclaredField(trainerValue)
+    trainerProperty.isAccessible = true
+    FlowRow(
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .background(color = Color(255, 255, 255, 125))
+            .border(color = Color.Black, width = 1.dp),
+        maxItemsInEachRow = 4
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(1f),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = trainerValue,
+                fontSize = 16.sp,
+                color = Color.White
+            )
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(1f),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "${trainerProperty.get(state.value.pokemonTrainers[0])}",
+                fontSize = 16.sp,
+                color = Color.White
+            )
+
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(1f),
+            contentAlignment = Alignment.Center
+        ) {
+            IconButton(onClick = { mainViewModel.editPokemonTrainer(state.value.pokemonTrainers[0]) }) {
+                Icon(
+                    Icons.Default.Edit, "Edit",
+                    tint = Color.White
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun DisplayTrainerProfile(mainViewModel: MainViewModel) {
+    val state = mainViewModel.mainViewState.collectAsState()
+    Column(verticalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth().weight(1f)
+        ) {
+            item {
+                Box() {
+                    val painter =
+                        rememberAsyncImagePainter(model = state.value.pokemonTrainers[0].sprite)
+                    Image(
+                        painter = painterResource(id = R.drawable.trainer1),
+                        contentDescription = "Pokemon Image",
+                        contentScale = ContentScale.FillBounds,
+                        modifier = Modifier
+                            .size(150.dp)
+                            .clip(MaterialTheme.shapes.medium)
+                            .padding(10.dp)
+                    )
+                }
+            }
+        }
+        TrainerValues(mainViewModel = mainViewModel)
+        LazyColumn(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth().weight(1f)
+        ) {
+            item {
+                Button(
+                    onClick = { /* implement delete profile */ },
+                    modifier = Modifier.padding(top = 20.dp)
+                ) {
+
+                    Text(text = "deleteTrainer", fontSize = 20.sp)
+                }
+            }
+
+        }
     }
 }
 
