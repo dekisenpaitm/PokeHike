@@ -26,7 +26,7 @@ class MainViewModel(private val db: TrainerBaseHandler): ViewModel() {
         _mainViewState.update { it.copy(selectedScreen = screen) }
     }
 
-    fun clickDelete(pokemonTrainer: PokemonTrainer){
+    fun deletePokemonTrainer(pokemonTrainer: PokemonTrainer){
         db.deletePokemonTrainer(pokemonTrainer)
         getPokemonTrainer()
     }

@@ -1,10 +1,8 @@
 package com.cc221015.demo_ii.viewModel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.cc221015.demo_ii.api.PokemonRepository
 import com.cc221015.demo_ii.data.PokemonBaseHandler
-import com.cc221015.demo_ii.data.PokemonTrainer
 import com.cc221015.demo_ii.domain.Pokemon
 import com.cc221015.demo_ii.stateModel.PokemonViewState
 import com.cc221015.demo_ii.ui.theme.Screen
@@ -20,15 +18,6 @@ class PokemonViewModel(private val db : PokemonBaseHandler) : ViewModel() {
 	private val _pokemonViewState = MutableStateFlow(PokemonViewState())
 	val pokemonViewState: StateFlow<PokemonViewState> = _pokemonViewState.asStateFlow()
 
-	/*
-	init {
-		loadPokemons()
-	}
-	*/
-
-	fun save(pokemon: Pokemon){
-		db.insertPokemon(pokemon)
-	}
 
 	fun getPokemon() {
 		_pokemonViewState.update { it.copy(pokemons = db.getPokemons()) }
@@ -61,6 +50,11 @@ class PokemonViewModel(private val db : PokemonBaseHandler) : ViewModel() {
 		}
 
 	}
+
+	fun deleteAllFavedPokemon() {
+		db.deleteFavPokemons()
+		_pokemonViewState.update { it.copy(pokemons = db.getFavPokemons()) }
+		}
 
 
 	private fun loadPokemons() {

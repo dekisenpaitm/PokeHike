@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowColumn
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,8 +26,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.BottomNavigation
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.ExposedDropdownMenuDefaults
@@ -36,8 +33,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
@@ -67,7 +62,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -81,13 +75,11 @@ import com.cc221015.demo_ii.data.PokemonTrainer
 import com.cc221015.demo_ii.domain.Pokemon
 import com.cc221015.demo_ii.viewModel.MainViewModel
 import com.cc221015.demo_ii.viewModel.PokemonViewModel
-import java.lang.reflect.Field
 import java.util.Locale
 
 
 // https://kotlinlang.org/docs/sealed-classes.html
 sealed class Screen(val route: String){
-    object Zero: Screen("zero")
     object First: Screen("first")
     object Second: Screen("second")
     object Third: Screen("third")
@@ -104,39 +96,53 @@ fun MainView(mainViewModel: MainViewModel, pokemonViewModel: PokemonViewModel){
         NavHost(
             navController = navController,
             modifier = Modifier.padding(it),
-            startDestination = Screen.Zero.route
+            startDestination = Screen.First.route
         ){
-            composable(Screen.Zero.route){
-                SetBackgroundMain()
-                if(state.value.pokemonTrainers.count() > -1) {
-                    mainViewModel.selectScreen(Screen.Zero)
-                } else {
-                    navController.navigate(Screen.First.route)
-                }
-                landingPage()
-            }
             composable(Screen.First.route){
                 SetBackgroundMain()
-                mainViewModel.selectScreen(Screen.First)
-                mainScreen(mainViewModel)
+                mainViewModel.getPokemonTrainer()
+                if(state.value.pokemonTrainers.isNotEmpty()) {
+                    mainViewModel.selectScreen(Screen.First)
+                    mainScreen(mainViewModel)
+                } else {
+                    mainViewModel.selectScreen(Screen.First)
+                    landingPage(mainViewModel)
+                }
             }
             composable(Screen.Second.route){
                 SetBackgroundMain()
-                mainViewModel.selectScreen(Screen.Second)
-                pokemonViewModel.getFavPokemon()
-                MyPokemonList(pokemonViewModel, true)
+                mainViewModel.getPokemonTrainer()
+                if(state.value.pokemonTrainers.isNotEmpty()) {
+                    mainViewModel.selectScreen(Screen.Second)
+                    pokemonViewModel.getFavPokemon()
+                    MyPokemonList(pokemonViewModel, true)
+                } else {
+                    mainViewModel.selectScreen(Screen.Second)
+                    ErrorScreen()
+                }
             }
             composable(Screen.Third.route){
                 SetBackgroundMain()
-                mainViewModel.selectScreen(Screen.Third)
-                pokemonViewModel.getPokemon()
-                MyPokemonList(pokemonViewModel, false)
+                mainViewModel.getPokemonTrainer()
+                if(state.value.pokemonTrainers.isNotEmpty()) {
+                    mainViewModel.selectScreen(Screen.Third)
+                    pokemonViewModel.getPokemon()
+                    MyPokemonList(pokemonViewModel, false)
+                } else {
+                    mainViewModel.selectScreen(Screen.Third)
+                    ErrorScreen()
+                }
             }
             composable(Screen.Fourth.route){
-                SetBackgroundMain()
-                mainViewModel.selectScreen(Screen.Fourth)
                 mainViewModel.getPokemonTrainer()
-                DisplayTrainerProfile(mainViewModel)
+                SetBackgroundMain()
+                if(state.value.pokemonTrainers.isNotEmpty()) {
+                mainViewModel.selectScreen(Screen.Fourth)
+                DisplayTrainerProfile(mainViewModel, pokemonViewModel)
+                } else {
+                    mainViewModel.selectScreen(Screen.Fourth)
+                    ErrorScreen()
+                }
             }
         }
     }
@@ -172,7 +178,8 @@ fun BottomNavigationBar(navController: NavHostController, selectedScreen: Screen
 @SuppressLint("DiscouragedApi")
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun landingPage() {
+fun landingPage(mainViewModel: MainViewModel) {
+
     var isExpanded by remember { mutableStateOf(false) }
     var selectedTrainerIndex by remember { mutableStateOf("") }
     var trainerName by remember { mutableStateOf("") }
@@ -253,12 +260,18 @@ fun landingPage() {
         )
 
         Button(
-            onClick = { /* Perform action to create a new trainer */ },
+            onClick = {
+                mainViewModel.save(PokemonTrainer(null,name,gender,trainerName))
+                      mainViewModel.getPokemonTrainer()},
             modifier = Modifier.padding(top = 20.dp)
         ) {
             Text(text = "Create New Trainer", fontSize = 20.sp)
         }
     }
+}
+@Composable
+fun ErrorScreen(){
+    Text(text = "Looks like you didn't create your user yet, please make sure to create one before using PokeHike!")
 }
 
 @Composable
@@ -269,72 +282,14 @@ fun TextBox(text:String){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun mainScreen(mainViewModel: MainViewModel){
-    var name by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
-    var gender by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
-    var sprite by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
-
-    Column (
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = stringResource(R.string.mainscreen_title),
-            fontSize = 50.sp,
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                color = Color.White,
-                shadow = Shadow(Color.Black, offset = Offset(1f,1f), 5f)
-            )
-        )
-
-        Image(
-            painter = painterResource(id = R.drawable.pokeball),
-            modifier = Modifier.height(50.dp),
-            contentScale = ContentScale.Inside,
-            contentDescription = stringResource(R.string.decorative_android_icon)
-        )
-
-        Spacer(
-            modifier = Modifier.height(50.dp)
-        )
-
-        // https://www.jetpackcompose.net/textfield-in-jetpack-compose
-        TextField(
-            value = name,
-            onValueChange = {
-                    newText -> name = newText
-            },
-            label = { Text(text = stringResource(R.string.mainscreen_field_name) ) }
-        )
-
-        TextField(
-            modifier = Modifier.padding(top = 20.dp),
-            value = gender,
-            onValueChange = {
-                    newText -> gender = newText
-            },
-            label = {
-                Text(text = stringResource(R.string.mainscreen_field_uid))
-            }
-        )
-
-        Button(
-            onClick = { mainViewModel.save(PokemonTrainer(null,name.text,gender.text,sprite.text)) },
-            modifier = Modifier.padding(top = 20.dp)
-        ) {
-            Text(text = stringResource(R.string.mainscreen_button_save), fontSize = 20.sp)
-        }
-    }
+    Text(text = "This will be the entrance with a description")
 }
 
 @Composable
 fun SetBackgroundMain() {
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = R.drawable.pokeball_background),
+            painter = painterResource(id = R.drawable.hills_background),
             contentDescription = "Login_Image",
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
@@ -401,39 +356,33 @@ fun TrainerItem(trainerValue: String, mainViewModel: MainViewModel){
             )
 
         }
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(1f),
-            contentAlignment = Alignment.Center
-        ) {
-            IconButton(onClick = { mainViewModel.editPokemonTrainer(state.value.pokemonTrainers[0]) }) {
-                Icon(
-                    Icons.Default.Edit, "Edit",
-                    tint = Color.White
-                )
-            }
-        }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun DisplayTrainerProfile(mainViewModel: MainViewModel) {
+fun DisplayTrainerProfile(mainViewModel: MainViewModel, pokemonViewModel: PokemonViewModel) {
     val state = mainViewModel.mainViewState.collectAsState()
     Column(verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth().weight(1f)
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
         ) {
             item {
                 Box() {
+                    val resourceId = LocalContext.current.resources.getIdentifier(
+                        state.value.pokemonTrainers[0].sprite,
+                        "drawable",
+                        LocalContext.current.packageName
+                    )
+                    val imageUrl = "android.resource://${LocalContext.current.packageName}/$resourceId"
                     val painter =
-                        rememberAsyncImagePainter(model = state.value.pokemonTrainers[0].sprite)
+                        rememberAsyncImagePainter(model = imageUrl)
                     Image(
-                        painter = painterResource(id = R.drawable.trainer1),
+                        painter = painter,
                         contentDescription = "Pokemon Image",
                         contentScale = ContentScale.FillBounds,
                         modifier = Modifier
@@ -448,94 +397,54 @@ fun DisplayTrainerProfile(mainViewModel: MainViewModel) {
         LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth().weight(1f)
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.3f)
         ) {
             item {
                 Button(
-                    onClick = { /* implement delete profile */ },
+                    onClick = { mainViewModel.editPokemonTrainer(state.value.pokemonTrainers[0]) },
+                    modifier = Modifier.padding(top = 20.dp)
+                ) {
+
+                    Text(text = "Update Trainer", fontSize = 20.sp)
+                }
+            }
+        }
+        LazyColumn(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.3f)
+        ) {
+            item {
+                Button(
+                    onClick = {
+                        mainViewModel.deletePokemonTrainer(state.value.pokemonTrainers[0])
+                        pokemonViewModel.deleteAllFavedPokemon()
+                              },
                     modifier = Modifier.padding(top = 20.dp)
                 ) {
 
                     Text(text = "deleteTrainer", fontSize = 20.sp)
                 }
             }
-
-        }
-    }
-}
-
-@Composable
-fun displayPokemonTrainer(mainViewModel: MainViewModel){
-    val state = mainViewModel.mainViewState.collectAsState()
-
-    // https://developer.android.com/jetpack/compose/lists
-    LazyColumn (
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        item{
-            Text(
-                text = stringResource(R.string.displayPokemon_title),
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-        }
-
-        items(state.value.pokemonTrainers){ pokemonTrainer ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.pokeball), // Replace with your image resource
-                    contentDescription = "PokeballIcon",
-                    modifier = Modifier
-                        .height(30.dp)
-                        .padding(1.dp) // Add padding
-                )
-                Column(modifier = Modifier
-                    .weight(5f)
-                    .padding(10.dp)) {
-                    Text(text = "Name: ${pokemonTrainer.name}",
-                        fontSize = 20.sp,
-                        color = Color.White)
-
-                    Text(text = "Gender: ${pokemonTrainer.gender}",
-                        fontSize = 16.sp,
-                        color = Color.White)
-
-                    Text(text = "Sprite: ${pokemonTrainer.sprite}",
-                        fontSize = 16.sp,
-                        color = Color.White)
-
-                }
-                IconButton(onClick = { mainViewModel.editPokemonTrainer(pokemonTrainer) }) {
-                    Icon(Icons.Default.Edit, "Edit",
-                        tint = Color.White)
-                }
-
-                IconButton(onClick = { mainViewModel.clickDelete(pokemonTrainer) }) {
-                    Icon(Icons.Default.Delete, "Delete",
-                        tint = Color.White)
-                }
-            }
         }
     }
     Column {
-        editPokemonModel(mainViewModel)
+        editTrainerModel(mainViewModel)
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun editPokemonModel(mainViewModel: MainViewModel){
+fun editTrainerModel(mainViewModel: MainViewModel){
     val state = mainViewModel.mainViewState.collectAsState()
 
     if(state.value.openDialog){
+        var id by rememberSaveable { mutableStateOf(state.value.editPokemonTrainer.id)}
         var name by rememberSaveable { mutableStateOf(state.value.editPokemonTrainer.name)}
         var gender by rememberSaveable { mutableStateOf(state.value.editPokemonTrainer.gender)}
         var sprite by rememberSaveable { mutableStateOf(state.value.editPokemonTrainer.sprite)}
@@ -552,14 +461,14 @@ fun editPokemonModel(mainViewModel: MainViewModel){
                         modifier = Modifier.padding(top = 20.dp),
                         value = name,
                         onValueChange = { newText -> name = newText },
-                        label = { Text(text = stringResource(R.string.editmodal_field_name) ) }
+                        label = { Text(text = "Change Username") }
                     )
 
                     TextField(
                         modifier = Modifier.padding(top = 20.dp),
                         value = gender,
                         onValueChange = { newText -> gender = newText },
-                        label = { Text(text = stringResource(R.string.editmodal_field_uid)) }
+                        label = { Text(text = "Change Gender") }
                     )
                 }
             },
@@ -568,7 +477,7 @@ fun editPokemonModel(mainViewModel: MainViewModel){
                     onClick = {
                         mainViewModel.savePokemonTrainer(
                             PokemonTrainer(
-                                null,
+                                id,
                                 name,
                                 gender,
                                 sprite,
