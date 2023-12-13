@@ -340,7 +340,7 @@ fun TrainerItem(trainerValue: String, mainViewModel: MainViewModel){
             Text(
                 text = trainerValue,
                 fontSize = 16.sp,
-                color = Color.White
+                color = Color.Black
             )
         }
         Box(
@@ -352,7 +352,7 @@ fun TrainerItem(trainerValue: String, mainViewModel: MainViewModel){
             Text(
                 text = "${trainerProperty.get(state.value.pokemonTrainers[0])}",
                 fontSize = 16.sp,
-                color = Color.White
+                color = Color.Black
             )
 
         }
@@ -615,7 +615,7 @@ fun PokemonItem(pokemon: Pokemon?, pokemonViewModel: PokemonViewModel, favorite:
                     var tint = if(pokemon.liked == "true"){
                         Color.Red
                     } else {
-                        Color.White
+                        Color.Gray
                     }
                     Icon(Icons.Default.Favorite, "Like", tint = tint, modifier = Modifier.size(20.dp))
                 }
