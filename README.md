@@ -39,6 +39,13 @@ Ensure you have the latest version of Android Studio and the Kotlin plugin insta
 3. Sync the Gradle files and wait for the process to complete.
 4. Run the application on an emulator or upload it on a physical device.
 
+## User Guide
+- Start the app on your emulator or physical device
+- Create your user on the landing page to enable all other features (make sure you're connected to the internet)
+- On screen3(NavBarButton3) scroll through a list of Pokemon and press the ♥-icon to add them to your favorites.
+- Scroll through your favorites on screen2(NavBarButton2)
+- Edit your user profile on screen4(NavBarButton4) or delete the user and start over
+
 ## Dependencies
 - Jetpack Compose for modern UI design.
 - Coil-kt and Glide for image loading.
