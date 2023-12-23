@@ -3,7 +3,21 @@
 ## Overview
 This Android application, `Demo II`, is a Kotlin-based uni-project utilizing Jetpack Compose. It's designed for Pokémon enthusiasts, allowing users to view, edit, and manage their favorite Pokémon and trainers. It will build the base for my upcoming team-project: PokéHike.
 
-## Features
+## Planned Features
+The main idea was to create a fully functioning app that covers all necessary CRUD functions for my semester assignment in mobile coding. It should be possible for the user to create/update/delete a trainer profile (name/gender), fetching the pokemon API to have the first 151 Pokemon,
+tagging pokemon as favorites and basically building the foundation for the CodeLabs3.
+
+## Additional Features
+- **PokemonTrainerImages**: Add functionality for the user to pick a trainer picture when creating the trainer for the first time.
+- **LocalListStorage**: Since its designed for hiking internet might be not available, PokemonLists get stored locally. Pictures are still being fetched online.
+
+## Future Features (CodeLab3)
+- **WeatherInfo**: Adding an API to fetch informations about the current weather situation.
+- **PokeStore**: Adding a feature to buy Pokeballs (LootBoxes) based on the current weather.
+- **OwnedPokemon**: Adding a new table for pokemon the user ownes after opening the pokeballs.
+- **GeneralReworkOfUI**: UI is still only a placeholder.
+
+## Basic Features
 - **Trainer Profiles**: View, edit and delete your Pokémon Trainer profile, including images, names, and other attributes.
 - **Pokémon Lists**: Browse through a comprehensive list of Pokémon, with support for marking favorites.
 - **Dynamic UI**: Utilize the power of Jetpack Compose for a responsive and interactive user experience.
