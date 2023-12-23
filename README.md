@@ -13,7 +13,6 @@ This Android application, `Demo II`, is a Kotlin-based uni-project utilizing Jet
 - **UI Toolkit**: Jetpack Compose
 - **Networking**: Retrofit, OkHttp
 - **Image Loading**: Coil-kt, Glide
-- **Dependency Injection**: *(Not specified in provided snippets)*
 
 ## Setup and Installation
 Ensure you have the latest version of Android Studio and the Kotlin plugin installed.
