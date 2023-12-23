@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.cc221015.demo_ii.domain.Pokemon
 
+// This class handles database operations for storing Pokemon data.
 class PokemonBaseHandler(context: Context) : SQLiteOpenHelper(context, dbName, null, 1) {
     companion object PokemonDatabase {
         private const val dbName = "PokemonDatabase"
@@ -19,6 +20,7 @@ class PokemonBaseHandler(context: Context) : SQLiteOpenHelper(context, dbName, n
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
+        // Create the Pokemon table when the database is first created.
         db?.execSQL(
             "CREATE TABLE IF NOT EXISTS $tableName (" +
                     "$id INTEGER PRIMARY KEY, " +
@@ -31,10 +33,12 @@ class PokemonBaseHandler(context: Context) : SQLiteOpenHelper(context, dbName, n
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, p1: Int, p2: Int) {
+        // Upgrade the database (e.g., by dropping the table) if needed.
         db?.execSQL("DROP TABLE IF EXISTS $tableName")
         onCreate(db)
     }
 
+    // Insert a Pokemon into the database.
     fun insertPokemon(pokemon: Pokemon) {
         val db = this.writableDatabase
         val values = ContentValues()
@@ -48,6 +52,7 @@ class PokemonBaseHandler(context: Context) : SQLiteOpenHelper(context, dbName, n
         db.insert(tableName, null, values)
     }
 
+    // Mark a Pokemon as liked in the database.
     fun likePokemon(pokemon: Pokemon) {
         val db = this.writableDatabase
         val values = ContentValues()
@@ -56,6 +61,7 @@ class PokemonBaseHandler(context: Context) : SQLiteOpenHelper(context, dbName, n
         db.update(tableName, values, "_id = ?", arrayOf(pokemon.number.toString()))
     }
 
+    // Mark a Pokemon as unliked in the database.
     fun unlikePokemon(pokemon: Pokemon) {
         val db = this.writableDatabase
         val values = ContentValues()
@@ -64,6 +70,7 @@ class PokemonBaseHandler(context: Context) : SQLiteOpenHelper(context, dbName, n
         db.update(tableName, values, "_id = ?", arrayOf(pokemon.number.toString()))
     }
 
+    // Retrieve all Pokemons from the database.
     fun getPokemons(): List<Pokemon> {
         var allPokemons = mutableListOf<Pokemon>()
 
@@ -92,6 +99,7 @@ class PokemonBaseHandler(context: Context) : SQLiteOpenHelper(context, dbName, n
         return allPokemons.toList()
     }
 
+    // Retrieve favorite Pokemons from the database.
     fun getFavPokemons(): List<Pokemon> {
         var allPokemons = mutableListOf<Pokemon>()
 
@@ -120,6 +128,7 @@ class PokemonBaseHandler(context: Context) : SQLiteOpenHelper(context, dbName, n
         return allPokemons.toList()
     }
 
+    // Delete all favorite Pokemons from the database.
     fun deleteFavPokemons() {
         var allPokemons = getFavPokemons()
         for (pokemon in allPokemons){
