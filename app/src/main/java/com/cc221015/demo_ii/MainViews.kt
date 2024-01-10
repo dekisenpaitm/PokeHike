@@ -331,7 +331,11 @@ fun TextBox(text:String){
 @Composable
 fun mainScreen(mainViewModel: MainViewModel){
     // Displaying text, potentially a placeholder for more dynamic content.
-    Text(text = "This will be the entrance with a description")
+    Text(text = "Thank you for creating your trainerprofile. Feel free to discover the features of the app. On the 'heart' icon you can find your favorite pokemon." +
+            "To add Pokemon to the list click the 'list' icon in the navigation bar. Now you have a full list of Pokemon (currently restricted to 151) by pressing the 'heart' at the" +
+            " right side of the entry the Pokemon will be add to your favs. To Remove pokemon from your favs just navigate to the 'heart' icon and click the 'heart' icon " +
+            "on the entry you want to remove. If you wanna change anything regarding your profile or even deleting you can find it under the 'profile' tab.")
+
 }
 
 // Helper Composable function for displaying the background.
@@ -525,8 +529,6 @@ fun DisplayTrainerProfile(mainViewModel: MainViewModel, pokemonViewModel: Pokemo
 
 // This function is designed to display detailed information about a Pokemon Trainer,
 // including an image, attributes, and options to update or delete the trainer.
-
-
 
 // Opt-in for Experimental Material3 API and define the Composable function for editing a trainer's model.
 @OptIn(ExperimentalMaterial3Api::class)
