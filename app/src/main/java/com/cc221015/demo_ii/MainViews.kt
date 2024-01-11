@@ -283,7 +283,7 @@ fun landingPage(mainViewModel: MainViewModel) {
                     )
                     val imageUrl = "android.resource://${LocalContext.current.packageName}/$resourceId"
                     // DropdownMenuItem for each trainer.
-                    DropdownMenuItem(text = { TextBox(text = currentTrainerName) }, onClick = { selectedTrainerIndex = imageUrl; trainerName = currentTrainerName })
+                    DropdownMenuItem(text = { TextBox(text = currentTrainerName) }, onClick = { selectedTrainerIndex = imageUrl; trainerName = currentTrainerName; isExpanded = false; })
                 }
             }
         }
