@@ -61,7 +61,7 @@ class PokemonViewModel(private val db: PokemonBaseHandler) : ViewModel() {
 	}
 
 	// Load Pokemon data from an API and insert it into the database.
-	private fun loadPokemons() {
+	fun loadPokemons() {
 		GlobalScope.launch(Dispatchers.IO) {
 			val pokemonsApiResult = PokemonRepository.listPokemons()
 			if (pokemonsApiResult != null) {

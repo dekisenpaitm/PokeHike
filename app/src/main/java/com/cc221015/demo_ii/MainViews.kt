@@ -119,7 +119,7 @@ fun MainView(mainViewModel: MainViewModel, pokemonViewModel: PokemonViewModel) {
                     mainScreen(mainViewModel) // Show the main screen if trainers exist.
                 } else {
                     mainViewModel.selectScreen(Screen.First)
-                    landingPage(mainViewModel) // Show the landing page otherwise.
+                    landingPage(mainViewModel, pokemonViewModel) // Show the landing page otherwise.
                 }
             }
 
@@ -215,7 +215,7 @@ fun BottomNavigationBar(navController: NavHostController, selectedScreen: Screen
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 // Defines a Composable function for the landing page.
 @Composable
-fun landingPage(mainViewModel: MainViewModel) {
+fun landingPage(mainViewModel: MainViewModel, pokemonViewModel:PokemonViewModel) {
     // State for tracking the expansion status of the dropdown menu.
     var isExpanded by remember { mutableStateOf(false) }
     // State for storing the index of the selected trainer's image.
@@ -308,7 +308,8 @@ fun landingPage(mainViewModel: MainViewModel) {
         Button(
             onClick = {
                 mainViewModel.save(PokemonTrainer(null,name,gender,trainerName))
-                      mainViewModel.getPokemonTrainer()},
+                      mainViewModel.getPokemonTrainer();
+                        pokemonViewModel.loadPokemons()},
             modifier = Modifier.padding(top = 20.dp)
         ) {
             Text(text = "Create New Trainer", fontSize = 20.sp)
